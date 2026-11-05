@@ -2,9 +2,12 @@
 
 #include <IEncodingComponent.h>
 
+#include <atomic>
+#include <string>
+
 class PluginStubEncoding final : public IEncodingComponent {
 public:
-    explicit PluginStubEncoding(IEncodingSdk *sdk);
+    PluginStubEncoding(IEncodingSdk *sdk, const PluginConfig &pluginConfig);
 
     ComponentStatus onUserInputReceived(RaceHandle handle, bool answered,
                                         const std::string &response) override;
@@ -19,5 +22,10 @@ public:
     static const char *name;
 
 private:
+    bool persistEncodedOutput(RaceHandle handle, const std::vector<uint8_t> &bytes);
+
     IEncodingSdk *sdk;
+    std::string loggingDirectory;
+    RaceHandle saveEncodedOutputHandle{NULL_RACE_HANDLE};
+    std::atomic<bool> saveEncodedOutputs{false};
 };

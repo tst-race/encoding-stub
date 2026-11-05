@@ -31,3 +31,33 @@ Artifacts are staged under `kit/artifacts/linux-<arch>-{client,server}/<PluginNa
 ## Integration
 
 The generated manifest registers only this encoding; it does not include a transport or user model. Add the generated plugin and a dedicated composition to the local integration harness, keeping `plugins/decomposed-exemplars` unchanged. The initial composition should use `twoSixIndirect` and this encoding; later test compatibility with a transport that declares the matching MIME type.
+
+### Save encoded output for offline analysis
+
+The component requests the optional `save-encoded-output` setting. It defaults
+to false; declined, unanswered, or invalid input leaves persistence disabled.
+When enabled, each successful encode writes the exact encoded bytes to
+`<PluginConfig.loggingDirectory>/encoding-outputs/encoded-output-<handle>-<sequence>.bin`.
+Decode output is not saved. If saving was explicitly enabled but the file cannot
+be written, that encode reports failure instead of claiming an output was
+captured. The feature never logs payload bytes and does not create files during
+normal default-off runs.
+
+For an integration test, declare the setting for the dedicated composition in
+the test manifest (the `plugin` value must match the composition id):
+
+```json
+{
+  "plugin": "myCodecComposition",
+  "key": "save-encoded-output",
+  "type": "bool",
+  "required": false,
+  "default": false
+}
+```
+
+Set `myCodecComposition.save-encoded-output=true` in the adapter's
+`NodeContribution.params` for each test node. Keep this enabled only in the
+integration test composition; the generated plugin itself defaults to false.
+These files contain encoded payloads, so use synthetic test data and treat the
+output directory as test data requiring appropriate access and cleanup.
